@@ -139,18 +139,21 @@ h3.grp{font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--tu
 .cal a,.cal button{display:inline-block;padding:11px 16px;border:1px solid rgba(255,255,255,.2);font-size:10px;letter-spacing:3px;text-transform:uppercase;text-decoration:none;color:var(--ink)}
 .cal .pri{background:var(--green-deep);border-color:var(--green-deep)}
 .cal a:hover,.cal button:hover{border-color:var(--turf)}
+/* prize */
+.prize{margin:0 0 18px;padding:14px 18px;border:1px solid rgba(45,168,79,.5);background:var(--card);font-size:14px;line-height:1.6}
+.prize small{display:block;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--turf);margin-bottom:4px}
 /* sponsors */
 .strip{display:flex;flex-wrap:wrap;align-items:center;gap:10px 26px;margin-top:22px;padding:14px 0;border-top:1px solid var(--line)}
 .strip span{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--mute)}
-.strip a{display:flex;align-items:center;height:30px;text-decoration:none;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--ink);opacity:.85}
+.strip a{display:flex;align-items:center;height:34px;text-decoration:none;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--ink);opacity:.85}
 .strip a:hover{opacity:1}
-.strip img{height:30px;width:auto;max-width:140px;object-fit:contain;filter:grayscale(1) brightness(1.6)}
-.strip a:hover img{filter:none}
+.strip img{height:34px;width:auto;max-width:150px;object-fit:contain}
 .spgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
 .sp{display:block;border:1px solid var(--line);background:var(--card);padding:22px;text-decoration:none}
 .sp:hover{border-color:rgba(45,168,79,.5)}
 .splogo{height:64px;display:flex;align-items:center;margin-bottom:16px}
-.splogo img{max-height:64px;max-width:180px;object-fit:contain;background:#fff;padding:6px}
+.splogo img{max-height:64px;max-width:180px;object-fit:contain}
+.splogo img.ext{background:#fff;padding:6px}
 .splogo span{font-size:20px;letter-spacing:2px;text-transform:uppercase}
 .sp b{display:block;font-size:16px;letter-spacing:1.5px;text-transform:uppercase}
 .sp em{display:block;font-style:normal;font-size:11px;letter-spacing:1px;color:var(--turf);text-transform:uppercase;margin-top:4px}
@@ -205,12 +208,12 @@ const CONFIG = {
   SHEET_ID: "18oFPl1r_tmNBH5JKKTHcIKxmWeyI5z6mQSAMEXuw0cU", // KWPL Season 1 | League Data. Empty = demo data.
   TABS: { leagues:"Leagues", teams:"Players", matches:"Matches", rules:"Rules", sponsors:"Sponsors" },
   POINTS: { "2-0":3, "2-1":2, "1-2":1, "0-2":0, forfeit:0 },
-  SLOTS: ["09:00","11:00","13:00","15:00"],
+  SLOTS: ["09:00","11:00"],
   COURTS: ["Court 1","Court 2"],
   CONTACT: [
-    {who:"Sole Sisters BKK", role:"League organizer | registration, player communication, community", link:"https://instagram.com/", label:"Instagram"},
+    {who:"Sole Sisters BKK", role:"League organizer | registration, player communication, community", link:"https://wa.me/66934484170", label:"WhatsApp Liz"},
     {who:"KROSS Padel", role:"Courts, level assessment, division placement, rewards, shirts", link:"https://krosspadel.com", label:"krosspadel.com"},
-    {who:"Reschedule requests", role:"One free reschedule per pair. Send your request at least 5 days before your match.", link:"#", label:"Request form (to be linked)"}
+    {who:"Reschedule requests", role:"One free reschedule per pair. Message Liz on WhatsApp at least 5 days before your match.", link:"https://wa.me/66934484170", label:"WhatsApp Liz +66 93 448 4170"}
   ]
 };
 
@@ -234,29 +237,30 @@ function parseCSV(text){
 
 /* ============ DEMO DATA (replaced by the sheet when SHEET_ID is set) ============ */
 function demo(){
-  const leagues=[{league_id:"kwpl-s1",name:"KROSS Women's Padel League by Sole Sisters BKK",season:"Season 1",status:"Registration open",start_date:"2026-10-18",weeks:"8",venue:"KROSS (2 covered courts)",day:"Sundays 9:00-17:00",format:"Best of 3 full sets | silver point",divisions:"Bronze:1.50-2.49;Silver:2.50-3.49",logo:LEAGUE_LOGO}];
-  const names={Bronze:[["Nina","Ploy"],["Sara","Mint"],["Kate","June"],["Ana","Bee"],["Lisa","Fah"],["Emma","Nam"],["Julia","Praew"],["Mia","Ice"]],
-               Silver:[["Sophie","Pim"],["Laura","Ying"],["Chloe","Aom"],["Hanna","Gift"],["Maria","Nok"],["Elena","May"],["Isabel","Kwan"],["Olivia","Tan"]]};
+  const leagues=[{league_id:"kwpl-s1",name:"KROSS Women's Padel League by Sole Sisters BKK",season:"Season 1",status:"Registration open",start_date:"2026-10-18",weeks:"8",venue:"KROSS (2 covered courts)",day:"Sundays 9:00-17:00",format:"Best of 3 full sets | silver point",divisions:"Silver:2.50-3.49",day:"Sundays 9:00-13:00",prize:"9,000 THB prize pool by The Collective Thailand. Winners 6,000 THB (3,000 each). Runners-up 3,000 THB (1,500 each).",logo:LEAGUE_LOGO}];
+  const names={Silver:[["Sophie","Pim"],["Laura","Ying"],["Chloe","Aom"],["Hanna","Gift"],["Maria","Nok"],["Elena","May"],["Isabel","Kwan"],["Olivia","Tan"]]};
   const teams=[]; for(const d in names) names[d].forEach((p,i)=>teams.push({team_id:`${d[0]}${i+1}`,league_id:"kwpl-s1",division:d,team_name:`${p[0]} & ${p[1]}`,player1:p[0],player2:p[1]}));
   /* circle-method round robin: 8 teams, 7 rounds, 4 matches per round per division = 8 matches per Sunday = 2 courts x 4 slots */
   const matches=[]; let id=1;
-  ["Bronze","Silver"].forEach((d,di)=>{ let ids=teams.filter(t=>t.division==d).map(t=>t.team_id);
+  ["Silver"].forEach((d,di)=>{ let ids=teams.filter(t=>t.division==d).map(t=>t.team_id);
     for(let w=1;w<=7;w++){ for(let k=0;k<4;k++){ const home=ids[k],away=ids[7-k];
-        const slotIdx=(k+w+di*2)%4, court=CONFIG.COURTS[(k+di)%2]; const date=new Date(2026,9,18+7*(w-1));
+        const slotIdx=k<2?0:1, court=CONFIG.COURTS[k%2]; const date=new Date(2026,9,18+7*(w-1));
         matches.push({match_id:"M"+id++,league_id:"kwpl-s1",division:d,week:String(w),date:date.toISOString().slice(0,10),time:CONFIG.SLOTS[slotIdx],court,home_team_id:home,away_team_id:away,set1:"",set2:"",set3:"",status:"scheduled",comments:""}); }
       ids=[ids[0],ids[7],...ids.slice(1,7)]; } });
   /* sample results for week 1 */
   const s=[["6-3","6-4","","Great first match. Both pairs on time."],["4-6","6-2","6-4","Long one, finished 5 min over. Court 2 next slot started late."],["6-1","6-0",""," "],["7-5","3-6","6-3","Silver points decided the third set."],["6-4","6-4","",""],["2-6","6-3","6-2","Nok rolled her ankle in set 2, played on. Ice bath after."],["6-2","4-6","6-1",""],["6-3","6-3","","Walkover discussed but played after a 10 min wait."]];
-  matches.filter(m=>m.week=="1").forEach((m,i)=>{[m.set1,m.set2,m.set3,m.comments]=s[i];m.status="played";});
+  matches.filter(m=>m.week=="1").forEach((m,i)=>{if(s[i]){[m.set1,m.set2,m.set3,m.comments]=s[i];m.status="played";}});
   const rules=[
-    {section:"Divisions",text:"Two divisions: Bronze (1.50-2.49) and Silver (2.50-3.49). External ratings from KROSS, Playtomic and The Padel Society are used as a reference only. KROSS makes the final placement and can move players between divisions."},
-    {section:"Format",text:"Single round robin, 8 pairs per division. Every pair plays 7 matches across 7 Sundays. Week 8 is Finals Day."},
+    {section:"Division",text:"One division, Silver (2.50-3.49). External ratings from KROSS, Playtomic and The Padel Society are a reference only. KROSS makes the final placement."},
+    {section:"Schedule",text:"Sundays 9:00-13:00 on 2 covered KROSS courts. Two matches at 9:00 and two at 11:00. Each match has a 2-hour court allocation."},
+    {section:"Format",text:"Single round robin, 8 pairs. Every pair plays 7 matches across 7 Sundays. Week 8 is Finals Day."},
+    {section:"Prize",text:"9,000 THB prize pool by The Collective Thailand. Winners 6,000 THB (3,000 per player). Runners-up 3,000 THB (1,500 per player)."},
     {section:"Matches",text:"Best of 3 full sets with silver point: at deuce the game is played on; at the second deuce a deciding point is played. No super tiebreak in the third set. Each match has a 2-hour court allocation."},
     {section:"Points",text:"2-0 win = 3 points. 2-1 win = 2 points. 1-2 loss = 1 point. 0-2 loss or forfeit = 0 points."},
-    {section:"Rescheduling",text:"Every pair may reschedule one match, included in the registration. Further changes only for documented health or family emergencies. When and where rescheduled matches are played will be confirmed before the season starts."},
+    {section:"Rescheduling",text:"Every pair may reschedule one match, included in the registration. Further changes only for documented health or family emergencies. Send reschedule requests to Liz on WhatsApp at least 5 days before the match."},
     {section:"Standings tie-breaks",text:"To be confirmed before Week 1."}
   ];
-  const sponsors=[{sponsor_id:"demo1",league_id:"kwpl-s1",name:"Official Partner A",tier:"Official Partner",tagline:"Sponsor tagline",description:"Sponsor description appears here once confirmed.",player_benefit:"Player benefit (to be confirmed)",url:"#",logo_url:""}];
+  const sponsors=[{sponsor_id:"collective",name:"The Collective Thailand",tier:"Prize Partner",tagline:"9,000 THB prize pool",description:"Puts up the Season 1 prize pool.",url:"",logo_url:"logos/collective.png"},{sponsor_id:"peaches",name:"Peaches Active",tier:"Official Partner",tagline:"Premium activewear, designed in Bangkok",description:"",url:"https://peachesactive.co/",logo_url:"logos/peaches.png"},{sponsor_id:"zuza",name:"ZUZA Sparkling Water",tier:"Official Partner",tagline:"Thai sparkling water with real fruit juice",description:"",url:"https://drinkzuza.com/",logo_url:"logos/zuza.png"},{sponsor_id:"aruun",name:"ARUUN",tier:"Official Partner",tagline:"Clean beauty | plant-based wellness",description:"",url:"https://www.aruun.com/",logo_url:"logos/aruun.png"}];
   return {leagues,teams,matches,rules,sponsors};
 }
 
@@ -358,7 +362,7 @@ function renderLeague(L,tab,arg){
   const divSwitch=()=>divs.length>1?`<div class="divswitch">${divs.map(d=>`<button data-div="${esc(d.name)}" class="${d.name==DIV?"on":""}" onclick="DIV='${esc(d.name)}';render()">${esc(d.name)}</button>`).join("")}</div>`:"";
   if(tab=="players"){
     const T=DB.teams.filter(t=>inLeague(t,L)&&t.division==DIV).map(t=>({...t,team_name:teamName(t)}));
-    v.innerHTML=`${divSwitch()}<span class="eyebrow">Players</span><h2 class="sec">${esc(DIV)} pairs.</h2><p class="note" style="margin:0 0 16px">Tap a pair for their results and coming games.</p><ul class="teams">${T.map(t=>`<li><a href="#/league/${esc(L.league_id)}/pair/${esc(t.team_id)}"><b>${esc(t.team_name)}</b><span>${esc(t.player1)} | ${esc(t.player2)}</span></a></li>`).join("")||`<li class="empty">Pairs are published after level assessment.</li>`}</ul>`;
+    v.innerHTML=`${divSwitch()}<span class="eyebrow">Players</span><h2 class="sec">${divs.length>1?esc(DIV)+" pairs":"Pairs"}.</h2><p class="note" style="margin:0 0 16px">Tap a pair for their results and coming games.</p><ul class="teams">${T.map(t=>`<li><a href="#/league/${esc(L.league_id)}/pair/${esc(t.team_id)}"><b>${esc(t.team_name)}</b><span>${esc(t.player1)} | ${esc(t.player2)}</span></a></li>`).join("")||`<li class="empty">Pairs are published after level assessment.</li>`}</ul>`;
   }
   if(tab=="fixtures"){
     const weeks=[...new Set(M.map(m=>+m.week))].sort((a,b)=>a-b); const total=+L.weeks||weeks.length;
@@ -391,7 +395,7 @@ function renderLeague(L,tab,arg){
   if(tab=="standings"){
     const S=standings(DIV);
     const next=M.filter(m=>!outcome(m)?.done).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time))[0];
-    v.innerHTML=`${divSwitch()}${next?`<p class="note" style="margin:0 0 16px">Next matchday: Week ${esc(next.week)} | ${fmtDate(next.date)}. <a href="#/league/${esc(L.league_id)}/fixtures/${esc(next.week)}">See the fixtures</a>.</p>`:""}<span class="eyebrow">Standings</span><h2 class="sec">${esc(DIV)}.</h2><div class="tblwrap"><table><thead><tr><th></th><th>Pair</th><th>P</th><th>W</th><th>L</th><th>Sets</th><th>Games</th><th>Pts</th></tr></thead>
+    v.innerHTML=`${divSwitch()}${L.prize?`<div class="prize"><small>Prize</small>${esc(L.prize)}</div>`:""}${next?`<p class="note" style="margin:0 0 16px">Next matchday: Week ${esc(next.week)} | ${fmtDate(next.date)}. <a href="#/league/${esc(L.league_id)}/fixtures/${esc(next.week)}">See the fixtures</a>.</p>`:""}<span class="eyebrow">Standings</span><h2 class="sec">${divs.length>1?esc(DIV):"Season 1"}.</h2><div class="tblwrap"><table><thead><tr><th></th><th>Pair</th><th>P</th><th>W</th><th>L</th><th>Sets</th><th>Games</th><th>Pts</th></tr></thead>
       <tbody>${S.map((r,i)=>`<tr onclick="location.hash='#/league/${esc(L.league_id)}/pair/${esc(r.t.team_id)}'"><td>${i+1}</td><td>${esc(r.t.team_name)}</td><td>${r.p}</td><td>${r.w}</td><td>${r.l}</td><td>${r.sf}-${r.sa}</td><td>${r.gf}-${r.ga}</td><td class="pts">${r.pts}</td></tr>`).join("")}</tbody></table></div>
       <p class="note">Tap a pair to see their results and coming games.</p><p class="note">Points: 2-0 win 3 | 2-1 win 2 | 1-2 loss 1 | 0-2 loss or forfeit 0. Ties are ordered by set difference, then game difference, pending the final tie-break rule.</p>`;
   }
@@ -401,7 +405,7 @@ function renderLeague(L,tab,arg){
   }
   if(tab=="sponsors"){
     const S=sponsorsFor(L); const tiers=[...new Set(S.map(x=>x.tier))];
-    v.innerHTML=`<span class="eyebrow">Season 1</span><h2 class="sec">Partners.</h2>${S.length?tiers.map(t=>`<h3 class="grp">${esc(t)}</h3><div class="spgrid">${S.filter(x=>x.tier==t).map(x=>`<a class="sp" href="${esc(x.url||"#")}" target="_blank" rel="noopener"><div class="splogo">${x.logo_url?`<img src="${esc(x.logo_url)}" alt="${esc(x.name)}">`:`<span>${esc(x.name)}</span>`}</div><b>${esc(x.name)}</b>${x.tagline?`<em>${esc(x.tagline)}</em>`:""}<p>${esc(x.description)}</p>${x.player_benefit?`<div class="benefit"><small>League player benefit</small>${esc(x.player_benefit)}</div>`:""}</a>`).join("")}</div>`).join(""):`<p class="empty">Partners are announced before Week 1.</p>`}`;
+    v.innerHTML=`<span class="eyebrow">Season 1</span><h2 class="sec">Partners.</h2>${S.length?tiers.map(t=>`<h3 class="grp">${esc(t)}</h3><div class="spgrid">${S.filter(x=>x.tier==t).map(x=>`<a class="sp" href="${esc(x.url||"#")}" ${x.url?`target="_blank" rel="noopener"`:`onclick="return false"`}><div class="splogo">${x.logo_url?`<img class="${/^https?:/.test(x.logo_url)?"ext":""}" src="${esc(x.logo_url)}" alt="${esc(x.name)}">`:`<span>${esc(x.name)}</span>`}</div><b>${esc(x.name)}</b>${x.tagline?`<em>${esc(x.tagline)}</em>`:""}<p>${esc(x.description)}</p>${x.player_benefit?`<div class="benefit"><small>League player benefit</small>${esc(x.player_benefit)}</div>`:""}</a>`).join("")}</div>`).join(""):`<p class="empty">Partners are announced before Week 1.</p>`}`;
   }
   if(tab=="contact"){
     v.innerHTML=`<span class="eyebrow">Get in touch</span><h2 class="sec">Contact.</h2><div class="contact">${CONFIG.CONTACT.map(c=>`<div><b>${esc(c.who)}</b><p>${esc(c.role)}</p><p><a href="${esc(c.link)}">${esc(c.label)}</a></p></div>`).join("")}</div>`;
@@ -409,8 +413,8 @@ function renderLeague(L,tab,arg){
   window.scrollTo({top:0});
 }
 function sponsorsFor(L){ return (DB.sponsors||[]).filter(x=>!x.league_id||x.league_id==L.league_id).filter(x=>x.name); }
-function sponsorStrip(L){ const S=sponsorsFor(L).filter(x=>/official|presenting/i.test(x.tier)); if(!S.length) return "";
-  return `<div class="strip"><span>Official partners</span>${S.map(x=>`<a href="${esc(x.url||"#")}" target="_blank" rel="noopener" title="${esc(x.name)}">${x.logo_url?`<img src="${esc(x.logo_url)}" alt="${esc(x.name)}">`:esc(x.name)}</a>`).join("")}</div>`; }
+function sponsorStrip(L){ const S=sponsorsFor(L).filter(x=>/official|presenting|prize/i.test(x.tier)); if(!S.length) return "";
+  return `<div class="strip"><span>Partners</span>${S.map(x=>`<a href="${esc(x.url||"#")}" target="_blank" rel="noopener" title="${esc(x.name)}">${x.logo_url?`<img src="${esc(x.logo_url)}" alt="${esc(x.name)}">`:esc(x.name)}</a>`).join("")}</div>`; }
 function card(m){
   const h=teamById(m.home_team_id),a=teamById(m.away_team_id),o=outcome(m),sets=parseSets(m);
   const st=o?.done?["final","FINAL"]:o?["live","IN PLAY"]:["","UPCOMING"];

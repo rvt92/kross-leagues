@@ -124,7 +124,8 @@ th{font-weight:700;color:var(--mute);font-size:9px;letter-spacing:2.5px;text-tra
 th:nth-child(2),td:nth-child(2){text-align:left;width:40%;text-transform:uppercase;letter-spacing:1px}
 td:first-child{color:var(--mute);width:32px}
 td.pts{font-weight:700;color:var(--turf);font-size:17px}
-tbody tr{cursor:pointer}tbody tr:hover td{background:var(--sand)}
+tbody tr{cursor:pointer}
+tbody tr:nth-child(4) td{border-bottom:2px solid rgba(45,168,79,.6)}tbody tr:hover td{background:var(--sand)}
 .tblwrap{overflow-x:auto}
 
 /* pair page */
@@ -209,6 +210,7 @@ const CONFIG = {
   TABS: { leagues:"Leagues", teams:"Players", matches:"Matches", rules:"Rules", sponsors:"Sponsors" },
   POINTS: { "2-0":3, "2-1":2, "1-2":1, "0-2":0, forfeit:0 },
   SLOTS: ["09:00","11:00"],
+  CATCHUP_WEEK: 8, FINALS_WEEK: 9,
   COURTS: ["Court 1","Court 2"],
   CONTACT: [
     {who:"Sole Sisters BKK", role:"League organizer | registration, player communication, community", link:"https://wa.me/66934484170", label:"WhatsApp Liz"},
@@ -237,7 +239,7 @@ function parseCSV(text){
 
 /* ============ DEMO DATA (replaced by the sheet when SHEET_ID is set) ============ */
 function demo(){
-  const leagues=[{league_id:"kwpl-s1",name:"KROSS Women's Padel League by Sole Sisters BKK",season:"Season 1",status:"Registration open",start_date:"2026-10-18",weeks:"8",venue:"KROSS (2 covered courts)",day:"Sundays 9:00-17:00",format:"Best of 3 full sets | silver point",divisions:"Silver:2.50-3.49",day:"Sundays 9:00-13:00",prize:"9,000 THB prize pool by The Collective Thailand. Winners 6,000 THB (3,000 each). Runners-up 3,000 THB (1,500 each).",logo:LEAGUE_LOGO}];
+  const leagues=[{league_id:"kwpl-s1",name:"KROSS Women's Padel League by Sole Sisters BKK",season:"Season 1",status:"Registration open",start_date:"2026-10-18",weeks:"9",venue:"KROSS (2 covered courts)",day:"Sundays 9:00-17:00",format:"Best of 3 full sets | silver point",divisions:"Silver:2.50-3.49",day:"Sundays 9:00-13:00",prize:"9,000 THB prize pool by The Collective Thailand. Final winners 6,000 THB (3,000 each). Finalists 3,000 THB (1,500 each). Top 4 after 7 rounds qualify for the championship playoff on Finals Day, 13 Dec.",logo:LEAGUE_LOGO}];
   const names={Silver:[["Sophie","Pim"],["Laura","Ying"],["Chloe","Aom"],["Hanna","Gift"],["Maria","Nok"],["Elena","May"],["Isabel","Kwan"],["Olivia","Tan"]]};
   const teams=[]; for(const d in names) names[d].forEach((p,i)=>teams.push({team_id:`${d[0]}${i+1}`,league_id:"kwpl-s1",division:d,team_name:`${p[0]} & ${p[1]}`,player1:p[0],player2:p[1]}));
   /* circle-method round robin: 8 teams, 7 rounds, 4 matches per round per division = 8 matches per Sunday = 2 courts x 4 slots */
@@ -253,8 +255,9 @@ function demo(){
   const rules=[
     {section:"Division",text:"One division, Silver (2.50-3.49). External ratings from KROSS, Playtomic and The Padel Society are a reference only. KROSS makes the final placement."},
     {section:"Schedule",text:"Sundays 9:00-13:00 on 2 covered KROSS courts. Two matches at 9:00 and two at 11:00. Each match has a 2-hour court allocation."},
-    {section:"Format",text:"Single round robin, 8 pairs. Every pair plays 7 matches across 7 Sundays. Week 8 is Finals Day."},
-    {section:"Prize",text:"9,000 THB prize pool by The Collective Thailand. Winners 6,000 THB (3,000 per player). Runners-up 3,000 THB (1,500 per player)."},
+    {section:"Format",text:"Single round robin, 8 pairs. Every pair plays 7 matches across 7 Sundays (18 Oct to 29 Nov). 6 Dec is a catch-up Sunday for rescheduled matches. Finals Day is Sunday 13 Dec."},
+    {section:"Finals Day",text:"Top 4 pairs after the round robin play the championship playoff: 1 v 4 and 2 v 3, winners meet in the final. Pairs 5 to 8 play the consolation playoff in the same format. Every pair plays on Finals Day."},
+    {section:"Prize",text:"9,000 THB prize pool by The Collective Thailand. Championship final winners 6,000 THB (3,000 per player). Finalists 3,000 THB (1,500 per player)."},
     {section:"Matches",text:"Best of 3 full sets with silver point: at deuce the game is played on; at the second deuce a deciding point is played. No super tiebreak in the third set. Each match has a 2-hour court allocation."},
     {section:"Points",text:"2-0 win = 3 points. 2-1 win = 2 points. 1-2 loss = 1 point. 0-2 loss or forfeit = 0 points."},
     {section:"Rescheduling",text:"Every pair may reschedule one match, included in the registration. Further changes only for documented health or family emergencies. Send reschedule requests to Liz on WhatsApp at least 5 days before the match."},
@@ -369,12 +372,14 @@ function renderLeague(L,tab,arg){
     let w=+arg||weeks.find(k=>M.some(m=>m.week==k&&!outcome(m)?.done))||weeks[0]||1;
     const wk=M.filter(m=>m.week==w); const date=wk[0]?.date||"";
     const cell=(slot,court)=>{const m=wk.find(x=>x.time==slot&&x.court==court); return m?card(m):`<span class="empty">Free</span>`;};
-    v.innerHTML=`<div class="weeks">${Array.from({length:total},(_,i)=>i+1).map(k=>{const d=M.find(m=>m.week==k)?.date; const isFinal=k>weeks[weeks.length-1]; return `<button class="${k==w?"on":""} ${isFinal?"final":""}" onclick="location.hash='#/league/${esc(L.league_id)}/fixtures/${k}'"><b>${isFinal?"Finals":"Week "+k}</b><span>${d?fmtDate(d):isFinal?"Day":"TBC"}</span></button>`;}).join("")}</div>
-      <span class="eyebrow">Fixtures</span><h2 class="sec">Week ${w}${date?" | "+fmtDate(date):""}.</h2>
+    const wdate=k=>{const d=M.find(m=>m.week==k)?.date; if(d) return d; if(!L.start_date) return ""; const x=new Date(L.start_date+"T00:00:00"); x.setDate(x.getDate()+7*(k-1)); return x.toISOString().slice(0,10);};
+    const wlabel=k=>k==CONFIG.FINALS_WEEK?"Finals":k==CONFIG.CATCHUP_WEEK?"Catch-up":"Week "+k;
+    v.innerHTML=`<div class="weeks">${Array.from({length:total},(_,i)=>i+1).map(k=>`<button class="${k==w?"on":""} ${k>=CONFIG.CATCHUP_WEEK?"final":""}" onclick="location.hash='#/league/${esc(L.league_id)}/fixtures/${k}'"><b>${wlabel(k)}</b><span>${wdate(k)?fmtDate(wdate(k)):"TBC"}</span></button>`).join("")}</div>
+      <span class="eyebrow">Fixtures</span><h2 class="sec">${wlabel(w)}${wdate(w)?" | "+fmtDate(wdate(w)):""}.</h2>
       ${wk.length?`<div class="grid"><div class="h"></div>${CONFIG.COURTS.map(c=>`<div class="h c">${esc(c)}</div>`).join("")}
-      ${CONFIG.SLOTS.map(s=>`<div class="t">${s}</div>${CONFIG.COURTS.map(c=>`<div>${cell(s,c)}</div>`).join("")}`).join("")}</div>
+      ${[...new Set([...CONFIG.SLOTS,...wk.map(m=>m.time)])].sort().map(s=>`<div class="t">${s}</div>${CONFIG.COURTS.map(c=>`<div>${cell(s,c)}</div>`).join("")}`).join("")}</div>
       <p class="note">Tap a match for the score and match notes. Rescheduled matches show their new date and time once confirmed.</p>`
-      :`<p class="empty">${w>weeks[weeks.length-1]?"Finals Day format and qualification will be announced during the season.":"Fixtures for this week are not published yet."}</p>`}`;
+      :`<p class="empty">${w==CONFIG.FINALS_WEEK?"Finals Day. Top 4 pairs play the championship playoff (1 v 4, 2 v 3, then the final). Pairs 5 to 8 play the consolation playoff. Match times are published after Week 7.":w==CONFIG.CATCHUP_WEEK?"Catch-up Sunday. Reserved for rescheduled matches. Any match moved to this day appears here.":"Fixtures for this week are not published yet."}</p>`}`;
   }
   if(tab=="results"){
     const R=M.filter(m=>outcome(m)?.done).sort((a,b)=>b.week-a.week||a.time.localeCompare(b.time));
@@ -397,7 +402,7 @@ function renderLeague(L,tab,arg){
     const next=M.filter(m=>!outcome(m)?.done).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time))[0];
     v.innerHTML=`${divSwitch()}${L.prize?`<div class="prize"><small>Prize</small>${esc(L.prize)}</div>`:""}${next?`<p class="note" style="margin:0 0 16px">Next matchday: Week ${esc(next.week)} | ${fmtDate(next.date)}. <a href="#/league/${esc(L.league_id)}/fixtures/${esc(next.week)}">See the fixtures</a>.</p>`:""}<span class="eyebrow">Standings</span><h2 class="sec">${divs.length>1?esc(DIV):"Season 1"}.</h2><div class="tblwrap"><table><thead><tr><th></th><th>Pair</th><th>P</th><th>W</th><th>L</th><th>Sets</th><th>Games</th><th>Pts</th></tr></thead>
       <tbody>${S.map((r,i)=>`<tr onclick="location.hash='#/league/${esc(L.league_id)}/pair/${esc(r.t.team_id)}'"><td>${i+1}</td><td>${esc(r.t.team_name)}</td><td>${r.p}</td><td>${r.w}</td><td>${r.l}</td><td>${r.sf}-${r.sa}</td><td>${r.gf}-${r.ga}</td><td class="pts">${r.pts}</td></tr>`).join("")}</tbody></table></div>
-      <p class="note">Tap a pair to see their results and coming games.</p><p class="note">Points: 2-0 win 3 | 2-1 win 2 | 1-2 loss 1 | 0-2 loss or forfeit 0. Ties are ordered by set difference, then game difference, pending the final tie-break rule.</p>`;
+      <p class="note">Tap a pair to see their results and coming games. Top 4 after Week 7 go to the championship playoff, 5 to 8 to the consolation playoff.</p><p class="note">Points: 2-0 win 3 | 2-1 win 2 | 1-2 loss 1 | 0-2 loss or forfeit 0. Ties are ordered by set difference, then game difference, pending the final tie-break rule.</p>`;
   }
   if(tab=="rules"){
     const R=DB.rules.filter(r=>inLeague(r,L));

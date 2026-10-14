@@ -388,13 +388,13 @@ function renderLeague(L,tab,arg){
     const isResch=m=>/resched/i.test(m.status);
     const wk=w==CONFIG.CATCHUP_WEEK?M.filter(m=>m.date==wdate(w)):M.filter(m=>m.week==w&&!isResch(m));
     const moved=w==CONFIG.CATCHUP_WEEK?[]:M.filter(m=>m.week==w&&isResch(m)); const date=wk[0]?.date||"";
-    const cell=(slot,court)=>{const m=wk.find(x=>x.time==slot&&x.court==court); return m?card(m):`<span class="empty">Free</span>`;};
+    const pool=[...moved]; const cell=(slot,court)=>{const m=wk.find(x=>x.time==slot&&x.court==court); if(m) return card(m); const r=pool.shift(); return r?card(r):`<span class="empty">Free</span>`;};
     v.innerHTML=`<div class="weeks">${Array.from({length:total},(_,i)=>i+1).map(k=>`<button class="${k==w?"on":""} ${k>=CONFIG.CATCHUP_WEEK?"final":""}" onclick="location.hash='#/league/${esc(L.league_id)}/fixtures/${k}'"><b>${wlabel(k)}</b><span>${wdate(k)?fmtDate(wdate(k)):"TBC"}</span></button>`).join("")}</div>
       <span class="eyebrow">Fixtures</span><h2 class="sec">${wlabel(w)}${wdate(w)?" | "+fmtDate(wdate(w)):""}.</h2>
       ${wk.length?`<div class="grid"><div class="h"></div>${CONFIG.COURTS.map(c=>`<div class="h c">${esc(c)}</div>`).join("")}
       ${[...new Set([...CONFIG.SLOTS,...wk.map(m=>m.time)])].sort().map(s=>`<div class="t">${s}</div>${CONFIG.COURTS.map(c=>`<div>${cell(s,c)}</div>`).join("")}`).join("")}</div>
-      ${moved.length?`<div class="moved"><h3>Rescheduled from this Sunday</h3><p>Played on the catch-up day instead. Tap for details.</p><div class="cards">${moved.map(card).join("")}</div></div>`:""}
-      <p class="note">Tap a match for the score and match notes.</p>`
+      ${pool.length?`<div class="moved"><h3>Also rescheduled from this Sunday</h3><div class="cards">${pool.map(card).join("")}</div></div>`:""}
+      <p class="note">Tap a match for the score and match notes.${moved.length?" Matches marked rescheduled are played on the catch-up day, 6 Dec.":""}</p>`
       :`<p class="empty">${w==CONFIG.FINALS_WEEK?"Finals Day. Top 4 pairs play the championship playoff (1 v 4, 2 v 3, then the final). Pairs 5 to 8 play the consolation playoff. Match times are published after Week 7.":w==CONFIG.CATCHUP_WEEK?"Catch-up Sunday. Rescheduled matches appear here.":"Fixtures for this week are not published yet."}</p>`}`;
   }
   if(tab=="results"){

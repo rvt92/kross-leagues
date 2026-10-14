@@ -145,6 +145,14 @@ h3.grp{font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--tu
 .cal a,.cal button{display:inline-block;padding:11px 16px;border:1px solid rgba(255,255,255,.2);font-size:10px;letter-spacing:3px;text-transform:uppercase;text-decoration:none;color:var(--ink)}
 .cal .pri{background:var(--green-deep);border-color:var(--green-deep)}
 .cal a:hover,.cal button:hover{border-color:var(--turf)}
+/* rescheduled */
+.card.resch{border-color:rgba(242,107,91,.6)}
+.rband{background:var(--coral);color:#180a08;font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:7px 16px}
+.rband.big{font-size:12px;letter-spacing:1.5px;padding:12px 14px;margin:0 0 16px}
+.card .foot .st.resch{color:var(--coral)}
+.moved{margin-top:26px;padding-top:18px;border-top:1px solid var(--line)}
+.moved h3{font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--coral);margin-bottom:4px}
+.moved p{font-size:13px;color:var(--mute);margin-bottom:12px}
 /* prize */
 .prize{margin:0 0 18px;padding:14px 18px;border:1px solid rgba(45,168,79,.5);background:var(--card);font-size:14px;line-height:1.6}
 .prize small{display:block;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--turf);margin-bottom:4px}
@@ -251,12 +259,12 @@ function demo(){
   const matches=[]; let id=1;
   ["Silver"].forEach((d,di)=>{ let ids=teams.filter(t=>t.division==d).map(t=>t.team_id);
     for(let w=1;w<=7;w++){ for(let k=0;k<4;k++){ const home=ids[k],away=ids[7-k];
-        const slotIdx=k<2?0:1, court=CONFIG.COURTS[k%2]; const date=new Date(2026,9,18+7*(w-1));
+        const slotIdx=k<2?0:1, court=CONFIG.COURTS[k%2]; const date=new Date(Date.UTC(2026,9,18+7*(w-1)));
         matches.push({match_id:"M"+id++,league_id:"kwpl-s1",division:d,week:String(w),date:date.toISOString().slice(0,10),time:CONFIG.SLOTS[slotIdx],court,home_team_id:home,away_team_id:away,set1:"",set2:"",set3:"",status:"scheduled",comments:""}); }
       ids=[ids[0],ids[7],...ids.slice(1,7)]; } });
   /* sample results for week 1 */
   const s=[["6-3","6-4","","Great first match. Both pairs on time."],["4-6","6-2","6-4","Long one, finished 5 min over. Court 2 next slot started late."],["6-1","6-0",""," "],["7-5","3-6","6-3","Silver points decided the third set."],["6-4","6-4","",""],["2-6","6-3","6-2","Nok rolled her ankle in set 2, played on. Ice bath after."],["6-2","4-6","6-1",""],["6-3","6-3","","Walkover discussed but played after a 10 min wait."]];
-  matches.filter(m=>m.week=="1").forEach((m,i)=>{if(s[i]){[m.set1,m.set2,m.set3,m.comments]=s[i];m.status="played";}});
+  matches.filter(m=>m.week=="1").forEach((m,i)=>{if(s[i]&&i<3){[m.set1,m.set2,m.set3,m.comments]=s[i];m.status="played";}}); const mv=matches.find(m=>m.week=="2"); mv.status="rescheduled"; mv.date="2026-12-06";
   const rules=[
     {section:"Division",text:"One division, Silver (2.50-3.49). External ratings from KROSS, Playtomic and The Padel Society are a reference only. KROSS makes the final placement."},
     {section:"Schedule",text:"Sundays 9:00-13:00 on 2 covered KROSS courts. Two matches at 9:00 and two at 11:00. Each match has a 2-hour court allocation."},
@@ -375,16 +383,19 @@ function renderLeague(L,tab,arg){
   if(tab=="fixtures"){
     const weeks=[...new Set(M.map(m=>+m.week))].sort((a,b)=>a-b); const total=+L.weeks||weeks.length;
     let w=+arg||weeks.find(k=>M.some(m=>m.week==k&&!outcome(m)?.done))||weeks[0]||1;
-    const wk=M.filter(m=>m.week==w); const date=wk[0]?.date||"";
-    const cell=(slot,court)=>{const m=wk.find(x=>x.time==slot&&x.court==court); return m?card(m):`<span class="empty">Free</span>`;};
-    const wdate=k=>{const d=M.find(m=>m.week==k)?.date; if(d) return d; if(!L.start_date) return ""; const x=new Date(L.start_date+"T00:00:00"); x.setDate(x.getDate()+7*(k-1)); return x.toISOString().slice(0,10);};
+    const wdate=k=>{const d=M.find(m=>m.week==k&&!/resched/i.test(m.status))?.date; if(d) return d; if(!L.start_date) return ""; const x=new Date(L.start_date+"T12:00:00"); x.setDate(x.getDate()+7*(k-1)); return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,"0")}-${String(x.getDate()).padStart(2,"0")}`;};
     const wlabel=k=>k==CONFIG.FINALS_WEEK?"Finals":k==CONFIG.CATCHUP_WEEK?"Catch-up":"Week "+k;
+    const isResch=m=>/resched/i.test(m.status);
+    const wk=w==CONFIG.CATCHUP_WEEK?M.filter(m=>m.date==wdate(w)):M.filter(m=>m.week==w&&!isResch(m));
+    const moved=w==CONFIG.CATCHUP_WEEK?[]:M.filter(m=>m.week==w&&isResch(m)); const date=wk[0]?.date||"";
+    const cell=(slot,court)=>{const m=wk.find(x=>x.time==slot&&x.court==court); return m?card(m):`<span class="empty">Free</span>`;};
     v.innerHTML=`<div class="weeks">${Array.from({length:total},(_,i)=>i+1).map(k=>`<button class="${k==w?"on":""} ${k>=CONFIG.CATCHUP_WEEK?"final":""}" onclick="location.hash='#/league/${esc(L.league_id)}/fixtures/${k}'"><b>${wlabel(k)}</b><span>${wdate(k)?fmtDate(wdate(k)):"TBC"}</span></button>`).join("")}</div>
       <span class="eyebrow">Fixtures</span><h2 class="sec">${wlabel(w)}${wdate(w)?" | "+fmtDate(wdate(w)):""}.</h2>
       ${wk.length?`<div class="grid"><div class="h"></div>${CONFIG.COURTS.map(c=>`<div class="h c">${esc(c)}</div>`).join("")}
       ${[...new Set([...CONFIG.SLOTS,...wk.map(m=>m.time)])].sort().map(s=>`<div class="t">${s}</div>${CONFIG.COURTS.map(c=>`<div>${cell(s,c)}</div>`).join("")}`).join("")}</div>
-      <p class="note">Tap a match for the score and match notes. Rescheduled matches show their new date and time once confirmed.</p>`
-      :`<p class="empty">${w==CONFIG.FINALS_WEEK?"Finals Day. Top 4 pairs play the championship playoff (1 v 4, 2 v 3, then the final). Pairs 5 to 8 play the consolation playoff. Match times are published after Week 7.":w==CONFIG.CATCHUP_WEEK?"Catch-up Sunday. Reserved for rescheduled matches. Any match moved to this day appears here.":"Fixtures for this week are not published yet."}</p>`}`;
+      ${moved.length?`<div class="moved"><h3>Rescheduled from this Sunday</h3><p>Played on the catch-up day instead. Tap for details.</p><div class="cards">${moved.map(card).join("")}</div></div>`:""}
+      <p class="note">Tap a match for the score and match notes.</p>`
+      :`<p class="empty">${w==CONFIG.FINALS_WEEK?"Finals Day. Top 4 pairs play the championship playoff (1 v 4, 2 v 3, then the final). Pairs 5 to 8 play the consolation playoff. Match times are published after Week 7.":w==CONFIG.CATCHUP_WEEK?"Catch-up Sunday. Rescheduled matches appear here.":"Fixtures for this week are not published yet."}</p>`}`;
   }
   if(tab=="results"){
     const R=M.filter(m=>outcome(m)?.done).sort((a,b)=>b.week-a.week||a.time.localeCompare(b.time));
@@ -393,7 +404,7 @@ function renderLeague(L,tab,arg){
   }
   if(tab=="pair"){
     const T=teamById(arg); if(!T.division){v.innerHTML=`<p class="empty">Pair not found.</p>`;return;} const mine=M.filter(m=>m.home_team_id==arg||m.away_team_id==arg);
-    const played=mine.filter(m=>outcome(m)?.done).sort((a,b)=>b.week-a.week), coming=mine.filter(m=>!outcome(m)?.done).sort((a,b)=>a.week-b.week);
+    const played=mine.filter(m=>outcome(m)?.done).sort((a,b)=>b.week-a.week), coming=mine.filter(m=>!outcome(m)?.done).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
     const row=standings(T.division).find(r=>r.t.team_id==arg), pos=standings(T.division).findIndex(r=>r.t.team_id==arg)+1;
     v.innerHTML=`<a class="crumb" href="#/league/${esc(L.league_id)}/${PAIR_FROM||"standings"}">← ${esc(T.division)} ${PAIR_FROM=="players"?"players":"standings"}</a>
       <div class="pairhead"><h2>${esc(T.team_name)}</h2><p>${esc(T.player1)} | ${esc(T.player2)} | ${esc(T.division)}</p>
@@ -427,18 +438,19 @@ function sponsorStrip(L){ const S=sponsorsFor(L).filter(x=>/official|presenting|
   return `<div class="strip"><span>Partners</span>${S.map(x=>`<a href="${esc(x.url||"#")}" target="_blank" rel="noopener" title="${esc(x.name)}">${x.logo_url?`<img src="${esc(x.logo_url)}" alt="${esc(x.name)}">`:esc(x.name)}</a>`).join("")}</div>`; }
 function card(m){
   const h=teamById(m.home_team_id),a=teamById(m.away_team_id),o=outcome(m),sets=parseSets(m);
-  const st=o?.done?["final","FINAL"]:o?["live","IN PLAY"]:["","UPCOMING"];
+  const st=o?.done?["final","FINAL"]:o?["live","IN PLAY"]:/resched/i.test(m.status)?["resch","RESCHEDULED"]:["","UPCOMING"];
   const cols=(side)=>[0,1,2].map(i=>`<span class="s">${sets[i]?sets[i][side]:""}</span>`).join("");
   const rowc=(id)=>o?.done&&o.winner==id?"row win":"row";
-  return `<button class="card" onclick="openMatch('${esc(m.match_id)}')">
+  const resch=/resched/i.test(m.status)&&!o?.done;
+  return `<button class="card ${resch?"resch":""}" onclick="openMatch('${esc(m.match_id)}')">${resch?`<div class="rband">Rescheduled | new date ${fmtDate(m.date)} ${esc(m.time)} ${esc(m.court)}</div>`:""}
     <div class="${rowc(m.home_team_id)}"><span>${esc(h.team_name)}</span>${o?.forfeit?`<span class="s">${o.winner==m.home_team_id?"W":"F"}</span><span class="s"></span><span class="s"></span>`:cols(0)}</div>
     <div class="${rowc(m.away_team_id)}"><span>${esc(a.team_name)}</span>${o?.forfeit?`<span class="s">${o.winner==m.away_team_id?"W":"F"}</span><span class="s"></span><span class="s"></span>`:cols(1)}</div>
-    <div class="foot"><span class="div ${esc(m.division)}">${esc(m.division).toUpperCase()}</span><span>W${esc(m.week)}</span><span>${fmtDate(m.date)} ${esc(m.time)} ${esc(m.court)}${/resched/i.test(m.status)?" | RESCHEDULED":""}</span>${m.comments.trim()?'<span class="cmt" style="color:var(--coral)">NOTES</span>':""}<span class="st ${st[0]}">● ${st[1]}</span></div></button>`;
+    <div class="foot"><span class="div ${esc(m.division)}">${esc(m.division).toUpperCase()}</span><span>W${esc(m.week)}</span><span>${fmtDate(m.date)} ${esc(m.time)} ${esc(m.court)}</span>${m.comments.trim()?'<span class="cmt" style="color:var(--coral)">NOTES</span>':""}<span class="st ${st[0]}">● ${st[1]}</span></div></button>`;
 }
 function openMatch(id){
   const m=DB.matches.find(x=>x.match_id==id); if(!m) return;
   const h=teamById(m.home_team_id),a=teamById(m.away_team_id),o=outcome(m),sets=parseSets(m);
-  $("#sheet").innerHTML=`<div class="tag">${esc(m.division)} | Week ${esc(m.week)} | ${fmtDate(m.date)} ${esc(m.time)} | ${esc(m.court)}${/resched/i.test(m.status)?" | rescheduled":""}</div>
+  $("#sheet").innerHTML=`<div class="tag">${esc(m.division)} | Week ${esc(m.week)} | ${fmtDate(m.date)} ${esc(m.time)} | ${esc(m.court)}</div>${/resched/i.test(m.status)&&!o?.done?`<div class="rband big">Rescheduled. Originally Week ${esc(m.week)}, now ${fmtDate(m.date)} at ${esc(m.time)}, ${esc(m.court)}.</div>`:""}
     <h3>${esc(h.team_name)} vs ${esc(a.team_name)}</h3>
     ${o?.forfeit?`<p>Walkover. ${esc(teamById(o.winner).team_name)} take the match.</p>`:sets.length?`<div class="sets">${sets.map((s,i)=>`<div><small>Set ${i+1}</small>${s[0]}-${s[1]}</div>`).join("")}</div>
     <div class="pair ${o?.winner==m.home_team_id?"win":""}"><span>${esc(h.team_name)}</span><span>${o?.hs??""} sets</span></div><div class="pair ${o?.winner==m.away_team_id?"win":""}"><span>${esc(a.team_name)}</span><span>${o?.as??""} sets</span></div>`:`<p>Not played yet.</p>`}

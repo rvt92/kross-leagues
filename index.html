@@ -120,7 +120,7 @@ h2.sec{font-size:34px;font-weight:700;letter-spacing:2px;text-transform:uppercas
 .cards{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
 .grid .card{border-radius:0}
 .empty{color:var(--mute);padding:20px 0;font-size:13px}
-@media (max-width:640px){.grid{grid-template-columns:1fr}.grid>div{border-right:0}.grid .h:first-child,.grid .t{display:none}.grid .h.c{background:var(--ink);color:var(--paper)}}
+@media (max-width:640px){.grid{display:block;border:0}.grid>div{border:0;padding:0;min-height:0;margin-bottom:10px}.grid .h{display:none}.grid .t{display:block;background:none;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--mute);padding:14px 0 6px;border-top:1px solid var(--line);margin:8px 0 6px}.grid .t:first-of-type{border-top:0;margin-top:0}.grid .empty{display:none}}
 
 /* standings */
 table{width:100%;border-collapse:collapse;font-size:15px}

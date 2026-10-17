@@ -406,13 +406,13 @@ function renderLeague(L,tab,arg){
   }
   if(tab=="pair"){
     const T=teamById(arg); if(!T.division){v.innerHTML=`<p class="empty">Pair not found.</p>`;return;} const mine=M.filter(m=>m.home_team_id==arg||m.away_team_id==arg);
-    const played=mine.filter(m=>outcome(m)?.done).sort((a,b)=>b.week-a.week), coming=mine.filter(m=>!outcome(m)?.done).sort((a,b)=>played(a).date.localeCompare(played(b).date)||played(a).time.localeCompare(played(b).time));
+    const done=mine.filter(m=>outcome(m)?.done).sort((a,b)=>b.week-a.week), coming=mine.filter(m=>!outcome(m)?.done).sort((a,b)=>played(a).date.localeCompare(played(b).date)||played(a).time.localeCompare(played(b).time));
     const row=standings(T.division).find(r=>r.t.team_id==arg), pos=standings(T.division).findIndex(r=>r.t.team_id==arg)+1;
     v.innerHTML=`<a class="crumb" href="#/league/${esc(L.league_id)}/${PAIR_FROM||"standings"}">← ${esc(T.division)} ${PAIR_FROM=="players"?"players":"standings"}</a>
       <div class="pairhead"><h2>${esc(T.team_name)}</h2><p>${esc(T.player1)} | ${esc(T.player2)} | ${esc(T.division)}</p>
       ${row?`<div class="rec"><span><b>${pos}</b>position</span><span><b>${row.pts}</b>points</span><span><b>${row.w}-${row.l}</b>won-lost</span><span><b>${row.sf}-${row.sa}</b>sets</span></div>`:""}
       ${coming.length?`<div class="cal"><button class="pri" onclick="downloadIcs('${esc(arg)}','${esc(L.league_id)}')">Add my fixtures to calendar</button></div><p class="note">Downloads a calendar file with your ${coming.length} remaining matches. Opens in Apple Calendar, Google Calendar or Outlook on your phone.</p>`:""}</div>
-      <h3 class="grp">Results</h3>${played.length?`<div class="cards">${played.map(card).join("")}</div>`:`<p class="empty">No matches played yet.</p>`}
+      <h3 class="grp">Results</h3>${done.length?`<div class="cards">${done.map(card).join("")}</div>`:`<p class="empty">No matches played yet.</p>`}
       <h3 class="grp">Coming games</h3>${coming.length?`<div class="cards">${coming.map(card).join("")}</div>`:`<p class="empty">No matches left in the regular season.</p>`}`;
   }
   if(tab=="standings"){
